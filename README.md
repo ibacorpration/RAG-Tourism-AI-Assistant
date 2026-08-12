@@ -115,3 +115,27 @@ Run the automated test suite:
 ```bash
 python -m pytest tests/ -v
 ```
+
+---
+
+## 🚢 Deployment (Server / Docker)
+
+### Option A — Docker (recommended)
+```bash
+# build & run, with .env providing GROQ_API_KEY etc.
+docker compose up -d --build
+```
+This mounts `data/uploads`, `data/processed`, `app/storage`, and `logs` as volumes so your vector DB and uploaded documents survive container restarts.
+
+### Option B — Plain server (systemd / VPS)
+```bash
+pip install -r requirements.txt
+export ENVIRONMENT=production
+gunicorn app.main:app --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --workers 2
+```
+Put Nginx (or Caddy) in front as a reverse proxy for TLS and a domain name. Set `ENVIRONMENT=production` so the app disables the dev auto-reloader.
+
+### Notes
+- Never commit `.env` — only `.env.example` is tracked. Copy it to `.env` on the server and fill in `GROQ_API_KEY`.
+- On PaaS platforms that assign a dynamic port (Render, Railway, Fly.io), the app reads `$PORT` automatically when run via `python app/main.py`.
+- `CORS_ORIGINS=["*"]` is fine for local development; for a public deployment, restrict it to your actual frontend domain(s) in `.env`.

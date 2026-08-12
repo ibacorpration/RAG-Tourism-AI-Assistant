@@ -1,0 +1,14 @@
+services:
+  rag-chatbot:
+    build: .
+    container_name: rag-chatbot
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./data/uploads:/app/data/uploads
+      - ./data/processed:/app/data/processed
+      - ./app/storage:/app/app/storage
+      - ./logs:/app/logs

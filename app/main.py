@@ -64,7 +64,18 @@ async def serve_ui():
 
 
 if __name__ == "__main__":
+    import os
     import uvicorn
+
+    # PORT is read from the environment because most hosting platforms
+    # (Render, Railway, Fly.io, etc.) assign the port dynamically and
+    # inject it as $PORT; 8000 stays the local-dev default.
+    port = int(os.environ.get("PORT", 8000))
+    # Only enable the auto-reloader in development: it re-imports the app
+    # (reloading the embedding model, wiping in-memory chat sessions) and
+    # is not meant to run under a production process manager.
+    is_dev = settings.ENVIRONMENT.lower() == "development"
+
     # Exclude data/logs/storage from the --reload watcher: those folders
     # change constantly (uploads, vector DB files, log writes) and are not
     # code. Without this, dropping/removing a document restarts the whole
@@ -73,11 +84,11 @@ if __name__ == "__main__":
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
-        port=8000,
-        reload=True,
+        port=port,
+        reload=is_dev,
         reload_excludes=[
             "data/*",
             "logs/*",
             "app/storage/*",
-        ],
+        ] if is_dev else None,
     )
