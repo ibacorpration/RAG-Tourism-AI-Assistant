@@ -118,16 +118,32 @@ python -m pytest tests/ -v
 
 ---
 
-## 🚢 Deployment (Server / Docker)
+## 🚢 Deployment (Server / Railway)
 
-### Option A — Docker (recommended)
+### Option A — Railway (recommended, fastest)
+Railway builds straight from the `Dockerfile` already in this repo — no extra config needed.
+
+1. Push this repo to GitHub (see steps above).
+2. On [railway.app](https://railway.app), create a **New Project → Deploy from GitHub repo** and pick this repo.
+3. Railway detects the `Dockerfile` and builds automatically.
+4. Under **Variables**, add your environment variables (copy them from `.env.example`), at minimum:
+   ```
+   GROQ_API_KEY=your_real_key
+   GROQ_MODEL_NAME=llama-3.3-70b-versatile
+   ENVIRONMENT=production
+   ```
+5. Railway injects `PORT` automatically — the app already reads it via `app/main.py`, and the `Dockerfile`'s `gunicorn` command binds to `0.0.0.0:8000`, which Railway maps for you. No changes needed.
+6. Add a **Volume** mounted at `/app/app/storage` (and optionally `/app/data/uploads`) so your ChromaDB vector store and uploaded documents persist across redeploys.
+7. Once deployed, Railway gives you a public URL — that's your live API and dashboard.
+
+### Option B — Any other server (VPS / Docker)
 ```bash
 # build & run, with .env providing GROQ_API_KEY etc.
 docker compose up -d --build
 ```
 This mounts `data/uploads`, `data/processed`, `app/storage`, and `logs` as volumes so your vector DB and uploaded documents survive container restarts.
 
-### Option B — Plain server (systemd / VPS)
+Or without Docker, straight on a VPS:
 ```bash
 pip install -r requirements.txt
 export ENVIRONMENT=production
@@ -136,6 +152,6 @@ gunicorn app.main:app --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.
 Put Nginx (or Caddy) in front as a reverse proxy for TLS and a domain name. Set `ENVIRONMENT=production` so the app disables the dev auto-reloader.
 
 ### Notes
-- Never commit `.env` — only `.env.example` is tracked. Copy it to `.env` on the server and fill in `GROQ_API_KEY`.
-- On PaaS platforms that assign a dynamic port (Render, Railway, Fly.io), the app reads `$PORT` automatically when run via `python app/main.py`.
-- `CORS_ORIGINS=["*"]` is fine for local development; for a public deployment, restrict it to your actual frontend domain(s) in `.env`.
+- Never commit `.env` — only `.env.example` is tracked. Set the real values as environment variables on whichever platform you deploy to.
+- On PaaS platforms that assign a dynamic port (Railway, Render, Fly.io), the app reads `$PORT` automatically.
+- `CORS_ORIGINS=["*"]` is fine for local development; for a public deployment, restrict it to your actual frontend domain(s) via the `CORS_ORIGINS` environment variable.
