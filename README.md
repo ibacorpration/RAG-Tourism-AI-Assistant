@@ -1,0 +1,117 @@
+# 🚀 Enterprise RAG-Chatbot (Groq API Powered)
+
+A production-ready **Retrieval-Augmented Generation (RAG) System** built with **FastAPI**, **ChromaDB**, **SentenceTransformers**, and **Groq API** (`llama-3.3-70b-versatile`).
+
+---
+
+## 🌟 Highlights
+
+- **⚡ Fast Inference**: Exclusively powered by **Groq API** for sub-second Llama-3 LLM responses.
+- **📄 Multi-Format Ingestion**: Supports PDF (`.pdf`), Plain Text (`.txt`), Markdown (`.md`), and JSON documents.
+- **🧩 Smart Text Chunking**: Recursive character splitting with configurable chunk sizes and overlap.
+- **🔍 Dual Retrieval Engine**: Supports standard **Cosine Similarity Search** and **Maximal Marginal Relevance (MMR)** for context diversity.
+- **💾 Persistent Vector Store**: Local persistent ChromaDB vector store saved in `app/storage/chroma_db/`.
+- **💬 Session Memory**: Sliding window conversation history per `conversation_id`.
+- **🖥️ Interactive Dashboard**: Dark glassmorphism web UI at `http://localhost:8000/` for uploading documents and live chatting with source citations.
+- **📡 Real-Time Streaming**: Server-Sent Events (SSE) streaming API at `/api/v1/chat/stream`.
+
+---
+
+## 📂 Project Architecture
+
+```
+RAG_System/
+├── app/
+│   ├── api/
+│   │   ├── routes/
+│   │   │   ├── health.py        # GET /api/v1/health
+│   │   │   ├── upload.py        # POST /api/v1/upload
+│   │   │   ├── embeddings.py    # POST /api/v1/embeddings/search & GET /stats
+│   │   │   └── chat.py          # POST /api/v1/chat & POST /api/v1/chat/stream
+│   │   ├── dependencies.py      # FastAPI Dependency Injection
+│   │   └── router.py            # Aggregate API v1 Router
+│   │
+│   ├── core/
+│   │   ├── config.py            # App settings (Pydantic BaseSettings)
+│   │   ├── logger.py            # Console & File logger (`logs/app.log`)
+│   │   ├── security.py          # CORS setup
+│   │   ├── constants.py         # Extensions & default values
+│   │   └── exceptions.py        # Custom RAG application exceptions
+│   │
+│   ├── schemas/
+│   │   ├── health.py            # Health status schema
+│   │   ├── upload.py            # File upload response schema
+│   │   ├── embeddings.py        # Vector search schemas
+│   │   └── chat.py              # Chat completion request/response schemas
+│   │
+│   ├── services/
+│   │   ├── documents/           # Document & DocumentChunk entities
+│   │   ├── loaders/             # PDF, Text, Markdown parsers & factory
+│   │   ├── splitters/           # Recursive text chunking
+│   │   ├── embeddings/          # SentenceTransformers (`all-MiniLM-L6-v2`)
+│   │   ├── vector_store/        # ChromaDB persistent store
+│   │   ├── retrievers/          # Similarity & MMR retrievers
+│   │   ├── llms/                # Dedicated Groq LLM Provider
+│   │   ├── memory/              # Sliding window session memory
+│   │   └── rag/                 # RAG & Chat orchestrators
+│   │
+│   ├── static/                  # Web Dashboard UI (`index.html`)
+│   ├── storage/                 # Persistent ChromaDB data
+│   └── main.py                  # FastAPI Application Entrypoint
+│
+├── data/                        # Uploads & sample documents
+├── logs/                        # System log files
+├── scripts/                     # CLI tools (`ingest.py`)
+├── tests/                       # Automated Pytest suite
+├── requirements/                # Project dependencies (`base.txt`)
+├── .env                         # Active environment configuration
+└── README.md                    # Documentation
+```
+
+---
+
+## 🛠️ Quick Start
+
+### 1. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Configure Groq API Key
+Edit `.env` and insert your Groq API key:
+```env
+GROQ_API_KEY="gsk_your_groq_api_key_here"
+GROQ_MODEL_NAME="llama-3.3-70b-versatile"
+```
+
+### 3. Run the Application
+Launch the FastAPI server:
+```bash
+python app/main.py
+```
+Or with uvicorn:
+```bash
+uvicorn app.main:app --reload --reload-exclude "data/*" --reload-exclude "logs/*" --reload-exclude "app/storage/*" --host 0.0.0.0 --port 8000
+```
+
+### 4. Access Interfaces
+- **Web UI Dashboard**: Open [http://localhost:8000/](http://localhost:8000/) in your browser.
+- **Swagger Interactive API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+---
+
+## 🛠️ CLI Ingestion Script
+
+To index documents directly from the command line:
+```bash
+python scripts/ingest.py --path data/samples/
+```
+
+---
+
+## 🧪 Running Tests
+
+Run the automated test suite:
+```bash
+python -m pytest tests/ -v
+```

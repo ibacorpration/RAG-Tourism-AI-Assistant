@@ -1,0 +1,18 @@
+Retrieval-Augmented Generation (RAG) System Overview
+
+1. Introduction
+Retrieval-Augmented Generation (RAG) is an AI architecture that enhances Large Language Models (LLMs) by retrieving relevant information from an external knowledge base before generating responses. This mitigates hallucination and ensures factual grounding on domain-specific data.
+
+2. Document Ingestion Pipeline
+The document ingestion process comprises three major steps:
+- Parsing: Extracting text from source documents such as PDF, TXT, Markdown, and Word files.
+- Chunking: Dividing long text documents into smaller, semantically coherent segments (chunks) with configurable size and overlap.
+- Embedding Generation: Converting text chunks into high-dimensional vector representations using embedding models like SentenceTransformers.
+
+3. Vector Database & Indexing
+Vector databases like ChromaDB persist document chunk embeddings. They allow efficient similarity searches using distance metrics such as Cosine Similarity or Euclidean Distance.
+
+4. Retrieval Strategies
+- Similarity Search: Finds the top-K chunks closest to the user's query vector.
+- Maximal Marginal Relevance (MMR): Balances query relevance with diversity to avoid redundant chunks in the retrieved context.
+
