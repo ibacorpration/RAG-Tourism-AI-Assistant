@@ -1,4 +1,4 @@
-# 🚀 RAG-Chatbot
+# 🚀 RAG System Tourism AI Assistant [Full Production]
 
 A production-ready **Retrieval-Augmented Generation (RAG) System** built with **FastAPI**, **ChromaDB**, **SentenceTransformers**, and **Groq API** (`llama-3.3-70b-versatile`).
 
