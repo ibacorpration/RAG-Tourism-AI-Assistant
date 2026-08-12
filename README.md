@@ -1,4 +1,4 @@
-# 🚀 Enterprise RAG-Chatbot (Groq API Powered)
+# 🚀 RAG-Chatbot
 
 A production-ready **Retrieval-Augmented Generation (RAG) System** built with **FastAPI**, **ChromaDB**, **SentenceTransformers**, and **Groq API** (`llama-3.3-70b-versatile`).
 
