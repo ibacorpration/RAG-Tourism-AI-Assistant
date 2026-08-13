@@ -4,7 +4,17 @@ A production-ready **Retrieval-Augmented Generation (RAG) System** built with **
 
 ---
 
-## 🌟 Highlights
+## 🌐 Live Demo
+
+The project is deployed and running live on **Railway**:
+
+🔗 **[https://rag-system-production-bb18.up.railway.app/](https://rag-system-production-bb18.up.railway.app/)**
+
+- Web Dashboard: [https://rag-system-production-bb18.up.railway.app/](https://rag-system-production-bb18.up.railway.app/)
+
+---
+
+## 🌟 Main Features
 
 - **⚡ Fast Inference**: Exclusively powered by **Groq API** for sub-second Llama-3 LLM responses.
 - **📄 Multi-Format Ingestion**: Supports PDF (`.pdf`), Plain Text (`.txt`), Markdown (`.md`), and JSON documents.
@@ -119,6 +129,9 @@ python -m pytest tests/ -v
 ---
 
 ## 🚢 Deployment (Server / Railway)
+
+### ✅ Currently Deployed On Railway
+This project is **live** at: [https://rag-system-production-bb18.up.railway.app/](https://rag-system-production-bb18.up.railway.app/)
 
 ### Option A — Railway (recommended, fastest)
 Railway builds straight from the `Dockerfile` already in this repo — no extra config needed.
