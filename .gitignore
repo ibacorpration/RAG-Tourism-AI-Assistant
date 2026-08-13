@@ -15,11 +15,11 @@ venv/
 env/
 
 # RAG uploaded/generated data
-data/uploads/*
+!data/samples/*
+!data/uploads/*
 data/processed/*
 data/chroma/*
 chroma_db/
-!data/uploads/.gitkeep
 !data/processed/.gitkeep
 app/storage/*
 !app/storage/.gitkeep
