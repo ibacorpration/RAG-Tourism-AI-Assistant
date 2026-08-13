@@ -36,8 +36,11 @@ class GroqLLMProvider(BaseLLMProvider):
     """
 
     def __init__(self, api_key: str = None, model: str = None):
-        self.api_key = api_key or getattr(settings, "GROQ_API_KEY", None) or os.getenv("GROQ_API_KEY")
-        self.model = model or getattr(settings, "GROQ_MODEL_NAME", "llama-3.3-70b-versatile")
+        if api_key is not None:
+            self.api_key = api_key
+        else:
+            self.api_key = getattr(settings, "GROQ_API_KEY", None) or os.getenv("GROQ_API_KEY")
+        self.model = model or getattr(settings, "GROQ_MODEL_NAME", "llama-3.1-8b-instant")
         
         if self.api_key:
             self.client = Groq(api_key=self.api_key)

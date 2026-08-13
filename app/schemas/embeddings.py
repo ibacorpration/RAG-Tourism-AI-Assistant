@@ -7,7 +7,7 @@ class VectorSearchRequest(BaseModel):
     Schema for vector search retrieval request.
     """
     query: str = Field(..., description="Search query string", example="What is Retrieval-Augmented Generation?")
-    top_k: int = Field(4, ge=1, le=20, description="Number of document chunks to retrieve")
+    top_k: int = Field(2, ge=1, le=20, description="Number of document chunks to retrieve")
     use_mmr: bool = Field(False, description="Whether to use Maximal Marginal Relevance (MMR) for diversity")
     score_threshold: Optional[float] = Field(None, description="Optional minimum similarity score threshold")
 
