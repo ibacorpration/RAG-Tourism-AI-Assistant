@@ -15,7 +15,7 @@ class GroqAPIKeyError(RAGException):
 
 def _strip_leaked_reasoning(text: str) -> str:
     """
-    Safety net: reasoning_format="hidden" should stop Qwen3/GPT-OSS from
+    Safety net: reasoning_format="none" should stop Qwen3/GPT-OSS from
     ever putting their <think>...</think> trace in message.content, but
     Groq's reasoning models have occasionally leaked it anyway. If a
     thinking block still slips through, drop it so the user only ever
@@ -79,9 +79,9 @@ class GroqLLMProvider(BaseLLMProvider):
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
-                temperature=kwargs.get("temperature", 0.2),
+                temperature=kwargs.get("temperature", 0.5),
                 max_tokens=kwargs.get("max_tokens", settings.LLM_MAX_TOKENS),
-                reasoning_format="hidden"
+            )
             )
             return _strip_leaked_reasoning(response.choices[0].message.content)
         except Exception as e:
@@ -104,10 +104,9 @@ class GroqLLMProvider(BaseLLMProvider):
             stream = self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
-                temperature=kwargs.get("temperature", 0.2),
+                temperature=kwargs.get("temperature", 0.5),
                 max_tokens=kwargs.get("max_tokens", settings.LLM_MAX_TOKENS),
                 stream=True,
-                reasoning_format="hidden"
             )
             for chunk in stream:
                 content = chunk.choices[0].delta.content
