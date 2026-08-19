@@ -1,16 +1,16 @@
 # 🚀 RAG System Tourism AI Assistant [Full Production]
 
+<img src="https://github.com/user-attachments/assets/fef43936-73eb-4353-9ff2-6219edd62061" alt="Tourism AI Assistant" width="100%" />
+
 A production-ready **Retrieval-Augmented Generation (RAG) System** built with **FastAPI**, **ChromaDB**, **SentenceTransformers**, and **Groq API** (`llama-3.3-70b-versatile`).
 
 ---
 
-## 🌐 Live Demo
+## 🌐 Live
 
 The project is deployed and running live on **Railway**:
 
-🔗 **[https://rag-system-production-bb18.up.railway.app/](https://rag-system-production-bb18.up.railway.app/)**
-
-- Web Dashboard: [https://rag-system-production-bb18.up.railway.app/](https://rag-system-production-bb18.up.railway.app/)
+🔗 **[https://rag-system-production-bb18.up.railway.app/](https://tourism-ai-assistant-production.up.railway.app/)**
 
 ---
 
