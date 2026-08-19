@@ -10,11 +10,14 @@ class TextSplitter:
     Utilizes recursive character splitting logic (paragraphs, sentences, words).
     """
 
-    def __init__(self, chunk_size: int = 800, chunk_overlap: int = 150):
+    def __init__(self,
+                 chunk_size: int = settings.DEFAULT_CHUNK_SIZE,
+                 chunk_overlap: int = settings.DEFAULT_CHUNK_OVERLAP
+                 ):
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.separators = ["\n\n", "\n", ". ", " ", ""]
-
+    
     def split_document(self, document: Document) -> List[DocumentChunk]:
         """
         Splits a single document into chunks while preserving metadata.

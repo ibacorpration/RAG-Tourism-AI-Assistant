@@ -10,8 +10,8 @@ DEFAULT_COLLECTION_NAME = "rag_documents"
 DEFAULT_SIMILARITY_TOP_K = 4
 
 # Splitting Defaults
-DEFAULT_CHUNK_SIZE = 500
-DEFAULT_CHUNK_OVERLAP = 50
+DEFAULT_CHUNK_SIZE = 1000
+DEFAULT_CHUNK_OVERLAP = 200
 
 # Log Formatting
 LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

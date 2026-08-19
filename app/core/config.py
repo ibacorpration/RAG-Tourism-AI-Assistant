@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     # RAG Retrieval / Context Budget Settings
     # These exist to keep every chat call's token usage predictable, since
     # Groq (and most providers) bill/rate-limit on total tokens per day.
-    RAG_TOP_K: int = 2                 # chunks retrieved per query
+    RAG_TOP_K: int = 4              # chunks retrieved per query
     RAG_SCORE_THRESHOLD: float = 0.15  # drop barely-relevant chunks before they reach the LLM
     RAG_RELATIVE_SCORE_CUTOFF: float = 0.6  # also drop chunks scoring below 60% of the top match's score, so a source that's only loosely related to THIS question doesn't tag along just because it cleared the absolute floor
     RAG_MAX_CONTEXT_CHARS: int = 3000  # hard cap on combined chunk text sent to the LLM (~750 tokens)
@@ -37,8 +37,8 @@ class Settings(BaseSettings):
     CHAT_HISTORY_MAX_CHARS_PER_MSG: int = 300  # truncate each past message before re-sending it
 
     # Ingestion Defaults
-    DEFAULT_CHUNK_SIZE: int = 500
-    DEFAULT_CHUNK_OVERLAP: int = 50
+    DEFAULT_CHUNK_SIZE: int = 1000
+    DEFAULT_CHUNK_OVERLAP: int = 200
 
     # Paths
     BASE_DIR: Path = Path(__file__).resolve().parent.parent.parent
