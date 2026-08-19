@@ -13,6 +13,20 @@ class GroqAPIKeyError(RAGException):
     pass
 
 
+def _strip_leaked_reasoning(text: str) -> str:
+    """
+    Safety net: reasoning_format="hidden" should stop Qwen3/GPT-OSS from
+    ever putting their <think>...</think> trace in message.content, but
+    Groq's reasoning models have occasionally leaked it anyway. If a
+    thinking block still slips through, drop it so the user only ever
+    sees the final answer.
+    """
+    if not text:
+        return text
+    cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL | re.IGNORECASE)
+    return cleaned.strip()
+
+
 def _friendly_rate_limit_message(raw_error: str) -> str:
     """
     Groq's 429 body is a raw JSON blob meant for developers, not end users.
@@ -66,9 +80,10 @@ class GroqLLMProvider(BaseLLMProvider):
                 model=self.model,
                 messages=messages,
                 temperature=kwargs.get("temperature", 0.2),
-                max_tokens=kwargs.get("max_tokens", settings.LLM_MAX_TOKENS)
+                max_tokens=kwargs.get("max_tokens", settings.LLM_MAX_TOKENS),
+                reasoning_format="hidden"
             )
-            return response.choices[0].message.content
+            return _strip_leaked_reasoning(response.choices[0].message.content)
         except Exception as e:
             error_str = str(e)
             if "rate_limit_exceeded" in error_str or "429" in error_str:
@@ -91,7 +106,8 @@ class GroqLLMProvider(BaseLLMProvider):
                 messages=messages,
                 temperature=kwargs.get("temperature", 0.2),
                 max_tokens=kwargs.get("max_tokens", settings.LLM_MAX_TOKENS),
-                stream=True
+                stream=True,
+                reasoning_format="hidden"
             )
             for chunk in stream:
                 content = chunk.choices[0].delta.content
