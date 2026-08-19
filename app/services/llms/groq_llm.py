@@ -82,7 +82,6 @@ class GroqLLMProvider(BaseLLMProvider):
                 temperature=kwargs.get("temperature", 0.5),
                 max_tokens=kwargs.get("max_tokens", settings.LLM_MAX_TOKENS),
             )
-            )
             return _strip_leaked_reasoning(response.choices[0].message.content)
         except Exception as e:
             error_str = str(e)
