@@ -91,7 +91,7 @@ pip install -r requirements.txt
 Edit `.env` and insert your Groq API key:
 ```env
 GROQ_API_KEY="gsk_your_groq_api_key_here"
-GROQ_MODEL_NAME="llama-3.3-70b-versatile"
+GROQ_MODEL_NAME="qwen/qwen3.6-27b"
 ```
 
 ### 3. Run the Application
@@ -131,7 +131,7 @@ python -m pytest tests/ -v
 ## 🚢 Deployment (Server / Railway)
 
 ### ✅ Currently Deployed On Railway
-This project is **live** at: [https://rag-system-production-bb18.up.railway.app/](https://rag-system-production-bb18.up.railway.app/)
+This project is **live** at: [https://tourism-ai-assistant-production.up.railway.app/](https://tourism-ai-assistant-production.up.railway.app/)
 
 ### Option A — Railway (recommended, fastest)
 Railway builds straight from the `Dockerfile` already in this repo — no extra config needed.
