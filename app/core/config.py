@@ -24,12 +24,12 @@ class Settings(BaseSettings):
     LLM_PROVIDER: str = "groq"
     GROQ_API_KEY: str = ""
     GROQ_MODEL_NAME: str = "qwen/qwen3.6-27b"
-    LLM_MAX_TOKENS: int = 500  # response length cap -> fewer output tokens per call
+    LLM_MAX_TOKENS: int = 800  # response length cap -> fewer output tokens per call
 
     # RAG Retrieval / Context Budget Settings
     # These exist to keep every chat call's token usage predictable, since
     # Groq (and most providers) bill/rate-limit on total tokens per day.
-    RAG_TOP_K: int = 4              # chunks retrieved per query
+    RAG_TOP_K: int = 3              # chunks retrieved per query
     RAG_SCORE_THRESHOLD: float = 0.15  # drop barely-relevant chunks before they reach the LLM
     RAG_RELATIVE_SCORE_CUTOFF: float = 0.6  # also drop chunks scoring below 60% of the top match's score, so a source that's only loosely related to THIS question doesn't tag along just because it cleared the absolute floor
     RAG_MAX_CONTEXT_CHARS: int = 3000  # hard cap on combined chunk text sent to the LLM (~750 tokens)
