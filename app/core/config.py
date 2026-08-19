@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     # LLM Settings (Groq API)
     LLM_PROVIDER: str = "groq"
     GROQ_API_KEY: str = ""
-    GROQ_MODEL_NAME: str = "llama-3.1-8b-instant"
+    GROQ_MODEL_NAME: str = "llama-3.3-70b-versatile"
     LLM_MAX_TOKENS: int = 500  # response length cap -> fewer output tokens per call
 
     # RAG Retrieval / Context Budget Settings
