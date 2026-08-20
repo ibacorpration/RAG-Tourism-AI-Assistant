@@ -40,6 +40,14 @@ class GroqLLMProvider(BaseLLMProvider):
             "openai/gpt-oss-120b"
         )
 
+        # reasoning_effort is only accepted by Groq's reasoning models
+        # (gpt-oss / qwen3 family). Sending it to a non-reasoning model
+        # like llama-3.1-8b-instant can raise an API error, so we only
+        # attach it when it's actually relevant.
+        self._is_reasoning_model = (
+            "gpt-oss" in self.model or "qwen3" in self.model
+        )
+
         self.client = Groq(api_key=self.api_key) if self.api_key else None
 
     def _ensure_client(self):
@@ -76,7 +84,7 @@ class GroqLLMProvider(BaseLLMProvider):
                 f"(model: {self.model})..."
             )
 
-            response = self.client.chat.completions.create(
+            create_kwargs = dict(
                 model=self.model,
                 messages=messages,
                 temperature=kwargs.get("temperature", 0.5),
@@ -85,10 +93,33 @@ class GroqLLMProvider(BaseLLMProvider):
                     settings.LLM_MAX_TOKENS
                 ),
             )
+            if self._is_reasoning_model:
+                create_kwargs["reasoning_effort"] = kwargs.get(
+                    "reasoning_effort", "low"
+                )
+
+            response = self.client.chat.completions.create(**create_kwargs)
 
             content = response.choices[0].message.content
+            finish_reason = response.choices[0].finish_reason
 
-            return content or ""
+            if not content:
+                # Known Groq/gpt-oss behavior: the model can spend the
+                # entire token budget on hidden reasoning and return no
+                # visible answer (finish_reason == "length" in that case).
+                # Surface a clear message instead of a silent empty bubble.
+                logger.warning(
+                    f"Groq returned empty content "
+                    f"(model: {self.model}, finish_reason: {finish_reason})."
+                )
+                return (
+                    "معلش، حصلت مشكلة في توليد الرد (الموديل رجع إجابة فاضية). "
+                    "جرب تسأل تاني أو بصياغة أبسط.\n"
+                    "Sorry, something went wrong generating a response "
+                    "(the model returned an empty answer). Please try again."
+                )
+
+            return content
 
         except Exception as e:
             error_str = str(e)
@@ -137,7 +168,7 @@ class GroqLLMProvider(BaseLLMProvider):
                 f"(model: {self.model})..."
             )
 
-            stream = self.client.chat.completions.create(
+            stream_kwargs = dict(
                 model=self.model,
                 messages=messages,
                 temperature=kwargs.get("temperature", 0.5),
@@ -147,6 +178,12 @@ class GroqLLMProvider(BaseLLMProvider):
                 ),
                 stream=True,
             )
+            if self._is_reasoning_model:
+                stream_kwargs["reasoning_effort"] = kwargs.get(
+                    "reasoning_effort", "low"
+                )
+
+            stream = self.client.chat.completions.create(**stream_kwargs)
 
             for chunk in stream:
 
