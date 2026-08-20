@@ -37,7 +37,7 @@ class GroqLLMProvider(BaseLLMProvider):
         self.model = model or getattr(
             settings,
             "GROQ_MODEL_NAME",
-            "llama-3.3-70b-versatile"
+            "openai/gpt-oss-120b"
         )
 
         self.client = Groq(api_key=self.api_key) if self.api_key else None
