@@ -808,108 +808,47 @@
       input.value = '';
 
       const botMsgDiv = appendMessage('bot', ' thinking...');
-      const nowStr = () => new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
-      let accumulatedText = '';
-      let sawFirstToken = false;
-
-      // Renders whatever text has streamed in so far, live, so the answer
-      // grows in place instead of popping in all at once at the end.
-      function renderPartial() {
-        const rendered = (typeof marked !== 'undefined')
-          ? marked.parse(normalizeMarkdown(accumulatedText))
-          : escapeHtml(accumulatedText).replace(/\n/g, '<br>');
-        botMsgDiv.innerHTML = rendered;
-      }
-
-      function renderSources(sources) {
-        if (!sources || !sources.length) return;
-        const box = document.createElement('div');
-        box.className = 'sources-box';
-        box.innerHTML = '<strong>📎 sources:</strong><br>';
-        const seenFiles = new Set();
-        sources.forEach(s => {
-          const name = s.metadata?.source || 'doc';
-          if (seenFiles.has(name)) return;
-          seenFiles.add(name);
-          const tag = document.createElement('span');
-          tag.className = 'source-tag';
-          tag.innerText = name;
-          box.appendChild(tag);
-        });
-        botMsgDiv.appendChild(box);
-      }
 
       try {
-        const res = await fetch('/api/v1/chat/stream', {
+        const res = await fetch('/api/v1/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ message: text, conversation_id: conversationId })
         });
-
-        if (!res.ok || !res.body) {
-          const data = await res.json().catch(() => ({}));
-          const icon = res.status === 429 ? '⏳' : '❌';
-          botMsgDiv.innerHTML = `${icon} ` + escapeHtml(data.detail || 'try again') + `<div class="time">${nowStr()}</div>`;
-          isProcessing = false;
-          return;
-        }
-
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-
-          // SSE frames are separated by a blank line ("\n\n"); each frame
-          // is a "data: <payload>" line.
-          let boundary;
-          while ((boundary = buffer.indexOf('\n\n')) !== -1) {
-            const frame = buffer.slice(0, boundary);
-            buffer = buffer.slice(boundary + 2);
-            if (!frame.startsWith('data: ')) continue;
-            const payload = frame.slice(6);
-
-            if (payload.startsWith('[[SOURCES]]')) {
-              try {
-                const sources = JSON.parse(payload.slice('[[SOURCES]]'.length));
-                renderSources(sources);
-              } catch (e) {
-                console.error('Failed to parse sources payload:', e);
-              }
-              continue;
-            }
-
-            if (payload.startsWith('[ERROR]')) {
-              botMsgDiv.innerHTML = '❌ ' + escapeHtml(payload.slice(7).trim());
-              isProcessing = false;
-              reader.cancel();
-              return;
-            }
-
-            if (!sawFirstToken) {
-              sawFirstToken = true;
-              botMsgDiv.innerHTML = '';
-            }
-            accumulatedText += payload;
-            renderPartial();
-            document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+        const data = await res.json();
+        if (res.ok) {
+          // Render the answer as Markdown so bullet lists, bold category
+          // labels, etc. from the LLM actually show up as a list instead
+          // of being flattened into one run-on paragraph.
+          const renderedAnswer = (typeof marked !== 'undefined')
+            ? marked.parse(normalizeMarkdown(data.response))
+            : escapeHtml(data.response).replace(/\n/g, '<br>');
+          botMsgDiv.innerHTML = renderedAnswer + `<div class="time">${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>`;
+          if (data.sources && data.sources.length) {
+            const box = document.createElement('div');
+            box.className = 'sources-box';
+            box.innerHTML = '<strong>📎 sources:</strong><br>';
+            // One tag per distinct file that actually backed this answer —
+            // no chunk repeats, no percentages, just the file name(s).
+            const seenFiles = new Set();
+            data.sources.forEach(s => {
+              const name = s.metadata?.source || 'doc';
+              if (seenFiles.has(name)) return;
+              seenFiles.add(name);
+              const tag = document.createElement('span');
+              tag.className = 'source-tag';
+              tag.innerText = name;
+              box.appendChild(tag);
+            });
+            botMsgDiv.appendChild(box);
           }
+        } else {
+          const icon = res.status === 429 ? '⏳' : '❌';
+          botMsgDiv.innerHTML = `${icon} ` + escapeHtml(data.detail || 'try again') + `<div class="time">${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>`;
         }
-
-        // Final render pass + timestamp, once streaming is fully done.
-        renderPartial();
-        const timeDiv = document.createElement('div');
-        timeDiv.className = 'time';
-        timeDiv.innerText = nowStr();
-        botMsgDiv.appendChild(timeDiv);
-
       } catch (e) {
-        botMsgDiv.innerHTML = '❌ connection error, please try again.' + `<div class="time">${nowStr()}</div>`;
-        console.error('Chat stream request failed:', e);
+        botMsgDiv.innerHTML = '❌ connection error, please try again.' + `<div class="time">${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>`;
+        console.error('Chat request failed:', e);
       }
       isProcessing = false;
       document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
