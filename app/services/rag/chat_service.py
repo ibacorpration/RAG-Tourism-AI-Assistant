@@ -1,3 +1,4 @@
+import json
 import uuid
 from typing import Dict, Any, List, Generator
 from app.services.rag.rag_service import RAGService
@@ -122,6 +123,20 @@ class RAGChatService:
 
         full_answer = "".join(full_response_acc)
         self.memory.add_ai_message(conv_id, full_answer)
+
+        # Final control token: not part of the visible answer text. The
+        # frontend recognizes the "[[SOURCES]]" prefix and renders it as
+        # the sources box instead of appending it to the chat bubble.
+        sources_payload = [
+            {
+                "chunk_id": c.get("chunk_id"),
+                "content": c.get("content"),
+                "similarity_score": c.get("similarity_score"),
+                "metadata": c.get("metadata"),
+            }
+            for c in context_chunks
+        ]
+        yield "[[SOURCES]]" + json.dumps(sources_payload, ensure_ascii=False)
 
     def _apply_relative_cutoff(self, chunks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
