@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     LLM_PROVIDER: str = "groq"
     GROQ_API_KEY: str = ""
     GROQ_MODEL_NAME: str = "openai/gpt-oss-120b"
-    LLM_MAX_TOKENS: int = 800  # response length cap -> fewer output tokens per call
+    LLM_MAX_TOKENS: int = 1500  # response length cap -> fewer output tokens per call
 
     # RAG Retrieval / Context Budget Settings
     # These exist to keep every chat call's token usage predictable, since
