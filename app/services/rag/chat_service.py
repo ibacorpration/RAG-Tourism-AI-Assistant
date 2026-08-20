@@ -1,4 +1,5 @@
 import json
+import re
 import uuid
 from typing import Dict, Any, List, Generator
 from app.services.rag.rag_service import RAGService
@@ -9,6 +10,35 @@ from app.services.memory.in_memory import InMemoryConversationMemory
 from app.prompts.templates import RAG_SYSTEM_PROMPT, RAG_USER_PROMPT_TEMPLATE
 from app.core.config import settings
 from app.core.logger import logger
+
+
+# Short greetings/thanks/meta questions ("hi", "شكرا", "عرفني بنفسك"...)
+# match against a document chunk with just enough similarity to clear the
+# lenient absolute score_threshold, even though the question has nothing
+# to do with the knowledge base. Matching one of these patterns skips
+# retrieval entirely for that turn, so no sources box gets attached to a
+# reply that never actually used any document.
+_SMALLTALK_PATTERNS = [
+    r'^(hi+|hello+|hey+|hiya|yo|greetings)[\s!.,]*$',
+    r'^(good\s?(morning|evening|afternoon|night))[\s!.,]*$',
+    r'^(thanks?( you)?|thx|ty|appreciate it)[\s!.,]*$',
+    r'^(bye|goodbye|see\s?you|later|take care)[\s!.,]*$',
+    r'^(ok(ay)?|cool|nice|great|got it|sounds good)[\s!.,]*$',
+    r'^(who are you|introduce yourself|what can you do|what is your name)[\s?.,]*$',
+    r'^(هاي|هلا+|أهلا+|اهلا+|السلام عليكم|صباح الخير|مساء الخير)[\s!.,؟]*$',
+    r'^(شكرا+|شكراً|تسلم|يعطيك العافية|متشكر|ميرسي|تسلم ايديك|تسلم ايدك)[\s!.,؟]*$',
+    r'^(مع السلامة|باي|سلام|تصبح على خير)[\s!.,؟]*$',
+    r'^(عرفني بنفسك|عرفني بيك|من أنت|انت مين|إنت مين|مين انت|ايه اللي تقدر تعمله|بتعمل ايه)[\s?.,؟]*$',
+    r'^(اوك|أوكي|تمام|كويس|حلو|ماشي)[\s!.,؟]*$',
+]
+
+
+def _is_smalltalk(message: str) -> bool:
+    normalized = message.strip()
+    return any(
+        re.match(pattern, normalized, re.IGNORECASE)
+        for pattern in _SMALLTALK_PATTERNS
+    )
 
 
 class RAGChatService:
@@ -43,13 +73,18 @@ class RAGChatService:
         conv_id = conversation_id or str(uuid.uuid4())
         logger.info(f"Processing RAG chat completion for conversation: {conv_id}")
 
-        # 1. Retrieve relevant context chunks
-        retrieved_chunks = self.rag_service.search(
-            query=user_message,
-            top_k=top_k or settings.RAG_TOP_K,
-            use_mmr=use_mmr,
-            score_threshold=settings.RAG_SCORE_THRESHOLD
-        )
+        # 1. Retrieve relevant context chunks — skipped entirely for
+        #    small talk (greetings, thanks, "who are you"...), so those
+        #    replies never get a sources box attached.
+        if _is_smalltalk(user_message):
+            retrieved_chunks = []
+        else:
+            retrieved_chunks = self.rag_service.search(
+                query=user_message,
+                top_k=top_k or settings.RAG_TOP_K,
+                use_mmr=use_mmr,
+                score_threshold=settings.RAG_SCORE_THRESHOLD
+            )
 
         # 2. Drop chunks that are only loosely related to THIS specific
         #    question (relative to its best match), then dedup + budget
@@ -94,12 +129,15 @@ class RAGChatService:
         conv_id = conversation_id or str(uuid.uuid4())
         logger.info(f"Processing RAG streaming chat for conversation: {conv_id}")
 
-        retrieved_chunks = self.rag_service.search(
-            query=user_message,
-            top_k=top_k or settings.RAG_TOP_K,
-            use_mmr=use_mmr,
-            score_threshold=settings.RAG_SCORE_THRESHOLD
-        )
+        if _is_smalltalk(user_message):
+            retrieved_chunks = []
+        else:
+            retrieved_chunks = self.rag_service.search(
+                query=user_message,
+                top_k=top_k or settings.RAG_TOP_K,
+                use_mmr=use_mmr,
+                score_threshold=settings.RAG_SCORE_THRESHOLD
+            )
         focused_chunks = self._apply_relative_cutoff(retrieved_chunks)
         deduped_chunks = self._dedup_chunks(focused_chunks)
         context_chunks = self._apply_context_budget(deduped_chunks)
